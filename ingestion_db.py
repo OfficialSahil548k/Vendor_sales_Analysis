@@ -41,5 +41,5 @@ def load_raw_data():
     logging.info("-------------------Ingestion complete-------------------")
     logging.info(f"Total time: {total_time:.2f} minutes")
 
-if name == "__main__":
+if __name__ == "__main__":
     load_raw_data()
