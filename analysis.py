@@ -1,6 +1,7 @@
 #Understanding the dataset to explore how the data is present in the database and if there is a need of creating some aggregated tables that can help:
 #   * vendor selection for profitability
 #   * product pricing optimization
+
 import pandas as pd
 import sqlite3
 
