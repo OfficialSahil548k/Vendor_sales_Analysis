@@ -8,8 +8,8 @@ import os
 logging.basicConfig(
     filename = "logs/get_vendor_summary.log",
     level = logging.DEBUG,
-    format = "%(asctime)s - &(levelname)s - %(message)s",
-    filemod="a"
+    format = "%(asctime)s - %(levelname)s - %(message)s",
+    filemode="a" 
 )
 
 
@@ -88,30 +88,37 @@ def clean_data(df):
     df['Description'] = df['Description'].str.strip()
 
     #creating new columns for better analysis
-    vendor_sales_summary['GrossProfit'] = vendor_sales_summary['TotalSalesDollars']-vendor_sales_summary['TotalPurchaseDollars']
-    vendor_sales_summary['ProfitMargin'] = (vendor_sales_summary['GrossProfit']/vendor_sales_summary['TotalSalesDollars'])*100
-    vendor_sales_summary['StockTurnOver'] = vendor_sales_summary['TotalSalesQuantity']/vendor_sales_summary['TotalPurchaseQuantity']
-    vendor_sales_summary['SalesToPurchaseRatio'] = vendor_sales_summary['TotalSalesDollars']/vendor_sales_summary['TotalPurchaseDollars']
+    df['GrossProfit'] = df['TotalSalesDollars']-df['TotalPurchaseDollars']
+    df['ProfitMargin'] = (df['GrossProfit']/df['TotalSalesDollars'])*100
+    df['StockTurnOver'] = df['TotalSalesQuantity']/df['TotalPurchaseQuantity']
+    df['SalesToPurchaseRatio'] = df['TotalSalesDollars']/df['TotalPurchaseDollars']
 
     return df
 
     
 
 if __name__ == '__main__':
-    #creating DataBase Connection
     conn = sqlite3.connect('inventory.db')
     engine = create_engine('sqlite:///inventory.db')
     path = r"D:\DATA_ANALYST_MAJOR\data\vendor_sales_summary.csv"
     
-    logging.info("creating vendor summary table....")
-    summary_df = create_vendor_summary(conn)
-    logging.info(summary_df.head())
+    try:
+        logging.info("Creating vendor summary table...")
+        summary_df = create_vendor_summary(conn)
+        logging.info("Vendor summary created successfully.")
+        logging.debug(summary_df.head().to_string())
 
-    logging.info("cleaning data....")
-    clean_df = clean_data(summary_df)
-    logging.info(clean_df.head())
+        logging.info("Cleaning data...")
+        clean_df = clean_data(summary_df)
+        logging.info("Data cleaned successfully.")
+        logging.debug(clean_df.head().to_string())
 
-    clean_df.to_csv(path)
-    logging.info("ingesting data....")
-    ingest_db(path, clean_df, engine)
-    logging.info("completed")
+        clean_df.to_csv(path, index=False)
+        logging.info(f"Cleaned data exported to CSV at {path}")
+
+        logging.info("Ingesting cleaned DataFrame directly into DB...")
+        clean_df.to_sql("vendor_sales_summary", con=engine, if_exists='replace', index=False)
+        logging.info("Data ingestion completed.")
+    
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
